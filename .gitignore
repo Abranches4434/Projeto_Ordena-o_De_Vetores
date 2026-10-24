@@ -1,0 +1,15 @@
+# Artefatos de compilação
+*.o
+*.obj
+*.exe
+bin/
+build/
+
+# Artefatos gerados nos testes
+testes/resultados/*.txt
+testes/resultados/*.csv
+testes/resultados/*.png
+
+# Arquivos temporários de editores
+*.swp
+*~
