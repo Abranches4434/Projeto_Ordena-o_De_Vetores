@@ -19,6 +19,7 @@
 | 23/10/2026 | Etapa 3 | Nova feature | Versão paralela com processos + memória compartilhada (mmap + fork + mesclagem k-vias). |
 | 23/10/2026 | Etapa 4 | Nova feature | Versão paralela com threads (pthreads), mesma estratégia dos processos. |
 | 23/10/2026 | Reestruturação | Alteração | Diretórios reorganizados em pastas autocontidas por versão + `container/`/`testes/`/`documentacao/`, conforme enunciado. |
+| 23/10/2026 | Etapa 5 | Nova feature | Container Docker, benchmark (nativo + container) e gráficos de tempo/speedup. |
 
 ---
 
@@ -277,6 +278,53 @@ era mais enxuta, mas não correspondia à estrutura exigida.
 
 ---
 
-## Próximas etapas (planejadas)
+## Etapa 5 — Container Docker e Análise de Desempenho
 
-- **Etapa 5** — Container Docker + limites de CPU + gráficos de tempo/speedup.
+### O que
+
+1. **`container/Dockerfile`** — imagem (ubuntu:24.04 + gcc/make) com as três versões compiladas.
+2. **`testes/benchmark.sh`** — benchmark nativo (fora do container), N execuções por configuração.
+3. **`testes/benchmark_container.sh`** — benchmark dentro do container com `--cpus=1/2/4`.
+4. **`testes/graficos.py`** — gera os 3 gráficos (tempo, speedup, fora × dentro).
+
+### Por que
+
+Fecha os requisitos do enunciado: disponibilizar a aplicação em container, executar
+com limites de CPU, medir o speedup e apresentar os resultados graficamente.
+
+### Onde
+
+- `container/Dockerfile`
+- `testes/benchmark.sh`, `testes/benchmark_container.sh`, `testes/graficos.py`
+- `testes/resultados/*.csv` (dados) e `*.png` (gráficos)
+
+### Resultados (mediana, 5 execuções; máquina com alta variância)
+
+`checksum` idêntico em todas as configurações (nativo e container): equivalência confirmada.
+
+**Tempo total e speedup (nativo, sequencial = 5,08 s):**
+
+| Workers | Processos | Speedup | Threads | Speedup |
+|---------|-----------|---------|---------|---------|
+| 2 | 5,93 s | 0,86x | 4,15 s | 1,22x |
+| 4 | 5,38 s | 0,94x | 3,73 s | 1,36x |
+| 8 | 4,25 s | 1,19x | 2,92 s | 1,74x |
+
+**Efeito do limite de CPU (container, exemplo processos com 8 workers):**
+
+| CPU | Tempo |
+|-----|-------|
+| 1 | 10,18 s |
+| 2 | 6,86 s |
+| 4 | 4,18 s |
+
+### Consequências / Interpretação
+
+- **Threads escalam melhor que processos** (criação de thread é mais barata que `fork`
+  + `mmap`), chegando a ~1,7x com 8 threads.
+- **Processos têm pouco ganho (ou perda) nesta escala**: o custo de `fork`/`mmap` somado
+  à mesclagem sequencial supera o ganho da ordenação paralela em 2–4 processos.
+- A **mesclagem sequencial** é o gargalo (Lei de Amdahl), limitando o speedup de ambos.
+- A máquina apresentou **alta variância** (oscilações de ~3× entre execuções), então
+  usou-se a **mediana** e os valores são aproximados; em um ambiente controlado o
+  speedup tende a ser maior.

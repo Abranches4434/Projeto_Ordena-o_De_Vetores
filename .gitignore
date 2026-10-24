@@ -8,9 +8,10 @@
 *.obj
 *.exe
 
-# Resultados de benchmark (gerados na Etapa 5)
+# Resultados de benchmark (CSVs intermediários ignorados; gráficos versionados)
 testes/resultados/*
 !testes/resultados/.gitkeep
+!testes/resultados/*.png
 
 # Arquivos temporários de editores
 *.swp
