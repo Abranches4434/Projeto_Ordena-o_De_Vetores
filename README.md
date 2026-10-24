@@ -25,7 +25,7 @@ Aplicação em **C** que consolida e ordena produtos de **5+ lojas fictícias** 
 │   ├── util.c/.h           # funções comuns (tempo, checksum, merge)
 │   ├── main_sequencial.c   # versão sequencial
 │   ├── main_processos.c    # versão com processos
-│   └── main_threads.c      # versão com threads (Etapa 4)
+│   └── main_threads.c      # versão com threads
 ├── testes/
 │   ├── entradas/           # seeds/configurações
 │   └── resultados/         # tempos e speedups
@@ -38,7 +38,7 @@ Aplicação em **C** que consolida e ordena produtos de **5+ lojas fictícias** 
 - [x] Etapa 1 — Fundação (modelo de dados + estrutura + SPEC)
 - [x] Etapa 2 — Versão sequencial (≥ 2s)
 - [x] Etapa 3 — Versão com processos
-- [ ] Etapa 4 — Versão com threads
+- [x] Etapa 4 — Versão com threads
 - [ ] Etapa 5 — Container + medições/speedup
 
 ## Pré-requisitos
@@ -65,6 +65,7 @@ Compile as versões:
 ```bash
 make sequencial   # versão sequencial (Etapa 2)
 make processos    # versão com processos + memória compartilhada (Etapa 3)
+make threads      # versão com threads (Etapa 4)
 ```
 
 Execute (valores padrão: 5 lojas × 2.000.000 produtos):
@@ -72,6 +73,7 @@ Execute (valores padrão: 5 lojas × 2.000.000 produtos):
 ```bash
 ./bin/sequencial
 ./bin/processos --proc 4
+./bin/threads --threads 4
 ```
 
 Parâmetros opcionais (válidos para as duas versões):
@@ -86,6 +88,7 @@ Parâmetros opcionais (válidos para as duas versões):
 | `--por-loja M` | produtos por loja (padrão 2.000.000) |
 | `--seed S` | semente do gerador (padrão 0) |
 | `--proc P` | número de processos (só na versão `processos`; padrão 4) |
+| `--threads T` | número de threads (só na versão `threads`; padrão 4) |
 | `--saida ARQ` | grava o vetor ordenado em arquivo binário |
 | `--help` | mostra a ajuda |
 

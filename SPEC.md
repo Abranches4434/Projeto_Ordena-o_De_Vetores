@@ -17,6 +17,7 @@
 | 23/10/2026 | Etapa 3 | Alteração | Gerador refatorado (xorshift64\* → splitmix64 por índice) para permitir geração paralela determinística. |
 | 23/10/2026 | Etapa 3 | Alteração | Funções comuns extraídas para `src/util.c/.h` (tempo, checksum, verificação, impressão, mesclagem). |
 | 23/10/2026 | Etapa 3 | Nova feature | Versão paralela com processos + memória compartilhada (mmap + fork + mesclagem k-vias). |
+| 23/10/2026 | Etapa 4 | Nova feature | Versão paralela com threads (pthreads), mesma estratégia dos processos. |
 
 ---
 
@@ -182,7 +183,59 @@ Etapa 5, pois os tempos variaram bastante entre execuções (carga da máquina).
 
 ---
 
+## Etapa 4 — Versão Paralela com Threads
+
+### O que
+
+Versão que paraleliza geração e ordenação usando **múltiplas threads** (`pthreads`),
+com a **mesma estratégia** da versão com processos (para comparação justa):
+
+1. O vetor de produtos é alocado com `malloc` — as threads **compartilham o mesmo
+   espaço de endereçamento**, então não é preciso `mmap` (diferença central em
+   relação aos processos).
+2. O vetor é dividido em `nthreads` trechos contíguos (disjuntos).
+3. Cada thread gera (`gerar_faixa`) e ordena (quicksort) o seu trecho.
+4. A thread principal aguarda todas (`pthread_join` — barreira/sincronização).
+5. A thread principal mescla os trechos ordenados (mesclagem k-vias, sequencial).
+
+O número de threads é passado em tempo de execução (`--threads T`), nunca fixo.
+
+### Por que
+
+Atende ao requisito do enunciado de uma versão paralela com **múltiplas threads**,
+permitindo comparar diretamente processos × threads sobre o mesmo algoritmo.
+
+### Onde
+
+- `src/main_threads.c` — versão com threads (pthread_create/pthread_join + merge).
+- `Makefile` — alvo `threads` (compilado com `-pthread`).
+
+### Consequências
+
+- **Threads compartilham memória por padrão** (heap), dispensando o `mmap` usado na
+  versão com processos — ponto-chave na comparação entre os dois modelos.
+- Como os trechos são **disjuntos**, cada thread escreve apenas na sua região:
+  **não há data race nem locks**; a sincronização fica por conta do `pthread_join`.
+- A **mesclagem continua sequencial** (conforme decidido na Etapa 3), preservando o
+  gargalo de Amdahl para fins de comparação.
+
+### Validação (medição preliminar)
+
+`checksum = a07c6fe59a7b186b` em 2/4/8 threads — **idêntico** às versões sequencial e
+com processos; `ordenacao verificada: OK`.
+
+| Threads | Ger+Ord (paralelo) | Total |
+|---------|--------------------|-------|
+| 2 | 4,62 s | 5,95 s |
+| 4 | 2,32 s | (ruidoso) |
+| 8 | 1,77 s | 3,86 s |
+
+A fase paralela (ger+ord) escala com o número de threads; os tempos de mesclagem e
+saída tiveram **alta variância entre execuções** (carga da máquina), então a medição
+rigorosa (múltiplas execuções, média e desvio) será feita na Etapa 5.
+
+---
+
 ## Próximas etapas (planejadas)
 
-- **Etapa 4** — Versão paralela com threads (`pthreads`).
 - **Etapa 5** — Container Docker + limites de CPU + gráficos de tempo/speedup.
