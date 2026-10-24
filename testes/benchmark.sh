@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Benchmark nativo (FORA do container).
+# Benchmark nativo (FORA do container), com execuções INTERCALADAS (round-robin).
 #
-# Roda cada configuração R vezes, extrai o "tempo total" e grava em CSV:
-#   versao,workers,tempo_total
+# Em vez de rodar todas as execuções de uma configuração seguidas, cada "rodada"
+# executa UMA vez cada configuração. Isso faz com que todas sejam medidas sob as
+# MESMAS condições da máquina (frequência/temperatura), tornando as medianas
+# comparáveis entre si.
 #
 # Uso: bash testes/benchmark.sh [rodadas]
 
@@ -25,23 +27,23 @@ make -C threads    >/dev/null
 
 echo "versao,workers,tempo_total" > "$OUT"
 
-medir() {
+medir_um() {
   local rotulo="$1" w="$2"; shift 2
-  for _ in $(seq 1 "$RODADAS"); do
-    local t
-    t=$("$@" --lojas "$LOJAS" --por-loja "$POR_LOJA" --seed "$SEED" 2>/dev/null \
-        | awk '/tempo total/ {print $4}')
-    echo "$rotulo,$w,$t" >> "$OUT"
-    sleep 1
-  done
+  local t
+  t=$("$@" --lojas "$LOJAS" --por-loja "$POR_LOJA" --seed "$SEED" 2>/dev/null \
+      | awk '/tempo total/ {print $4}')
+  echo "$rotulo,$w,$t" >> "$OUT"
 }
 
-medir sequencial 1 ./sequencial/sequencial
-medir processos  2 ./processos/processos --proc 2
-medir processos  4 ./processos/processos --proc 4
-medir processos  8 ./processos/processos --proc 8
-medir threads    2 ./threads/threads --threads 2
-medir threads    4 ./threads/threads --threads 4
-medir threads    8 ./threads/threads --threads 8
+# Uma rodada = uma execução de cada configuração, em ordem fixa.
+for _ in $(seq 1 "$RODADAS"); do
+  medir_um sequencial 1 ./sequencial/sequencial
+  medir_um processos  2 ./processos/processos --proc 2
+  medir_um processos  4 ./processos/processos --proc 4
+  medir_um processos  8 ./processos/processos --proc 8
+  medir_um threads    2 ./threads/threads --threads 2
+  medir_um threads    4 ./threads/threads --threads 4
+  medir_um threads    8 ./threads/threads --threads 8
+done
 
 echo "OK -> $OUT"
