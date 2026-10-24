@@ -1,14 +1,16 @@
+# Binários das três versões
+/sequencial/sequencial
+/processos/processos
+/threads/threads
+
 # Artefatos de compilação
 *.o
 *.obj
 *.exe
-bin/
-build/
 
-# Artefatos gerados nos testes
-testes/resultados/*.txt
-testes/resultados/*.csv
-testes/resultados/*.png
+# Resultados de benchmark (gerados na Etapa 5)
+testes/resultados/*
+!testes/resultados/.gitkeep
 
 # Arquivos temporários de editores
 *.swp

@@ -18,6 +18,7 @@
 | 23/10/2026 | Etapa 3 | Alteração | Funções comuns extraídas para `src/util.c/.h` (tempo, checksum, verificação, impressão, mesclagem). |
 | 23/10/2026 | Etapa 3 | Nova feature | Versão paralela com processos + memória compartilhada (mmap + fork + mesclagem k-vias). |
 | 23/10/2026 | Etapa 4 | Nova feature | Versão paralela com threads (pthreads), mesma estratégia dos processos. |
+| 23/10/2026 | Reestruturação | Alteração | Diretórios reorganizados em pastas autocontidas por versão + `container/`/`testes/`/`documentacao/`, conforme enunciado. |
 
 ---
 
@@ -233,6 +234,46 @@ com processos; `ordenacao verificada: OK`.
 A fase paralela (ger+ord) escala com o número de threads; os tempos de mesclagem e
 saída tiveram **alta variância entre execuções** (carga da máquina), então a medição
 rigorosa (múltiplas execuções, média e desvio) será feita na Etapa 5.
+
+---
+
+## Reorganização da Estrutura de Diretórios
+
+### O que
+
+A árvore do repositório foi reorganizada para refletir exatamente a estrutura de
+entrega exigida no enunciado (zip com `/sequencial`, `/processos`, `/threads`,
+`/container`, `/testes` e `/documentacao`).
+
+Cada pasta de versão passou a ser **autocontida** (contém seu próprio código-fonte,
+`Makefile` e `README.md`), com os arquivos comuns (`modelo.h`, `gerador.*`,
+`quicksort.*`, `util.*`) duplicados em cada uma.
+
+### Por que
+
+O enunciado especifica uma estrutura de entrega com uma pasta por versão, cada uma
+com "código-fonte" e "README". A organização anterior (um único `src/` compartilhado)
+era mais enxuta, mas não correspondia à estrutura exigida.
+
+### Onde
+
+```
+├── sequencial/   # main_sequencial.c + arquivos comuns + Makefile + README.md
+├── processos/    # main_processos.c  + arquivos comuns + Makefile + README.md
+├── threads/      # main_threads.c    + arquivos comuns + Makefile + README.md
+├── container/    # Dockerfile (Etapa 5)
+├── testes/
+│   ├── entradas/
+│   └── resultados/
+└── documentacao/ # apresentacao.pdf
+```
+
+### Consequências
+
+- As referências a `src/...` nas etapas anteriores passaram a apontar para as
+  cópias dentro de cada pasta de versão.
+- Mudanças futuras no código comum precisam ser aplicadas nas três pastas (custo
+  da duplicação, aceito para atender à estrutura do enunciado).
 
 ---
 
