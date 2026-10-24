@@ -13,6 +13,7 @@
 | Data       | Etapa   | Tipo         | Descrição |
 |------------|---------|--------------|-----------|
 | 23/10/2026 | Etapa 1 | Nova feature | Fundação: problema, modelo de dados, arquitetura e estrutura do projeto. |
+| 23/10/2026 | Etapa 2 | Nova feature | Versão sequencial: gerador, quicksort e medição de tempo (linha de base). |
 
 ---
 
@@ -74,9 +75,58 @@ A ordenação de produtos de múltiplas fontes foi escolhida porque:
 
 ---
 
+## Etapa 2 — Versão Sequencial
+
+### O que
+
+Implementação da versão sequencial completa do pipeline em **C**:
+
+1. **Geração** (`gerador.c`): cria os produtos das lojas com um PRNG
+   determinístico (xorshift64\*), garantindo dados reprodutíveis pela semente.
+2. **Ordenação** (`quicksort.c`): Quicksort recursivo com pivô mediana-de-três e
+   insertion sort para partições pequenas, usando o comparador de `modelo.h`.
+3. **Saída** (`main_sequencial.c`): grava o vetor ordenado (binário, opcional),
+   calcula um checksum FNV-1a e imprime os tempos de cada fase.
+
+### Por que
+
+É a base exigida pelo enunciado: uma aplicação sequencial cuja execução leve
+pelo menos **2 segundos**, servindo de referência para o cálculo de speedup das
+versões paralelas (Etapas 3 e 4).
+
+### Onde
+
+- `src/gerador.c/.h` — geração determinística dos produtos.
+- `src/quicksort.c/.h` — Quicksort sequencial (lógica reutilizável nas versões paralelas).
+- `src/main_sequencial.c` — ponto de entrada, medição de tempo e checksum.
+- `Makefile` — alvo `sequencial`.
+
+### Consequências
+
+- Estabelece a **linha de base** de tempo (`t_seq`) usada no cálculo de speedup.
+- Introduz o **checksum FNV-1a** como verificação de equivalência entre versões
+  (mesma saída => mesmo checksum).
+- O PRNG determinístico permite comparar as versões com exatamente a mesma entrada.
+
+### Validação (medição de referência)
+
+Em WSL2/Ubuntu (gcc 15.2, `-O2`), com a entrada padrão (5 lojas × 2.000.000 =
+10.000.000 produtos):
+
+| Fase | Tempo |
+|------|-------|
+| Geração | ~1,88 s |
+| Ordenação | ~5,38 s |
+| Saída | ~0,09 s |
+| **Total** | **~7,35 s** |
+
+- Ordenação confirmada por varredura O(n) (`ordenacao verificada: OK`).
+- Checksum: `730a917b356d1467` (referência para comparar com as versões paralelas).
+
+---
+
 ## Próximas etapas (planejadas)
 
-- **Etapa 2** — Versão sequencial completa (geração + quicksort + saída), com medição ≥ 2s.
 - **Etapa 3** — Versão paralela com processos (`fork` + `mmap`).
 - **Etapa 4** — Versão paralela com threads (`pthreads`).
 - **Etapa 5** — Container Docker + limites de CPU + gráficos de tempo/speedup.

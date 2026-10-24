@@ -16,10 +16,11 @@
 
 /*
  * Quantidade padrão de produtos por loja.
- * 5 lojas x 1.000.000 = 5.000.000 produtos no total, valor usado como ponto de
- * partida para garantir execução sequencial >= 2 segundos. Ajustável.
+ * 5 lojas x 2.000.000 = 10.000.000 produtos no total, garantindo execução
+ * sequencial confortavelmente >= 2 segundos (com margem para a apresentação).
+ * Ajustável na linha de comando.
  */
-#define PRODUTOS_POR_LOJA_PADRAO 1000000
+#define PRODUTOS_POR_LOJA_PADRAO 2000000
 
 typedef struct {
     uint64_t id;         /* identificador único global (usado como desempate)   */
