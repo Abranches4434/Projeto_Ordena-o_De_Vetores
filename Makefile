@@ -9,26 +9,29 @@ LDFLAGS ?=
 BIN_DIR := bin
 SRC_DIR := src
 
-# Fontes da versão sequencial (Etapa 2).
-SEQ_SRC := $(SRC_DIR)/main_sequencial.c $(SRC_DIR)/gerador.c $(SRC_DIR)/quicksort.c
-SEQ_BIN := $(BIN_DIR)/sequencial
+# Fontes comuns a todas as versões.
+COMUM_SRC := $(SRC_DIR)/gerador.c $(SRC_DIR)/quicksort.c $(SRC_DIR)/util.c
 
-# Fontes das versões paralelas (Etapas 3 e 4) — preenchidos nas próximas etapas.
-PROC_SRC :=
+SEQ_SRC  := $(SRC_DIR)/main_sequencial.c $(COMUM_SRC)
+PROC_SRC := $(SRC_DIR)/main_processos.c $(COMUM_SRC)
 THR_SRC  :=
+
+SEQ_BIN  := $(BIN_DIR)/sequencial
+PROC_BIN := $(BIN_DIR)/processos
 
 .PHONY: all sequencial processos threads clean help
 
-all: sequencial
+all: sequencial processos
 
 sequencial: $(SEQ_BIN)
 
 $(SEQ_BIN): $(SEQ_SRC) | $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $(SEQ_SRC) $(LDFLAGS)
 
-# Alvos futuros (Etapas 3 e 4):
-processos:
-	@echo "Versao com processos ainda nao implementada (Etapa 3)."
+processos: $(PROC_BIN)
+
+$(PROC_BIN): $(PROC_SRC) | $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $(PROC_SRC) $(LDFLAGS)
 
 threads:
 	@echo "Versao com threads ainda nao implementada (Etapa 4)."
@@ -41,7 +44,7 @@ clean:
 
 help:
 	@echo "Alvos disponiveis:"
-	@echo "  make sequencial  - compila a versao sequencial (Etapa 2)"
-	@echo "  make processos   - (futuro) versao com processos"
-	@echo "  make threads     - (futuro) versao com threads"
+	@echo "  make sequencial  - versao sequencial (Etapa 2)"
+	@echo "  make processos   - versao com processos + memoria compartilhada (Etapa 3)"
+	@echo "  make threads     - (futuro) versao com threads (Etapa 4)"
 	@echo "  make clean       - remove artefatos de build"
