@@ -298,17 +298,17 @@ com limites de CPU, medir o speedup e apresentar os resultados graficamente.
 - `testes/benchmark.sh`, `testes/benchmark_container.sh`, `testes/graficos.py`
 - `testes/resultados/*.csv` (dados) e `*.png` (gráficos)
 
-### Resultados (mediana, 5 execuções; máquina com alta variância)
+### Resultados (mediana de 5 execuções intercaladas)
 
 `checksum` idêntico em todas as configurações (nativo e container): equivalência confirmada.
 
-**Tempo total e speedup (nativo, sequencial = 5,08 s):**
+**Tempo total e speedup (nativo, sequencial = 4,80 s):**
 
 | Workers | Processos | Speedup | Threads | Speedup |
 |---------|-----------|---------|---------|---------|
-| 2 | 5,93 s | 0,86x | 4,15 s | 1,22x |
-| 4 | 5,38 s | 0,94x | 3,73 s | 1,36x |
-| 8 | 4,25 s | 1,19x | 2,92 s | 1,74x |
+| 2 | 4,16 s | 1,15x | 4,04 s | 1,19x |
+| 4 | 3,75 s | 1,28x | 2,83 s | 1,70x |
+| 8 | 4,03 s | 1,19x | 2,96 s | 1,62x |
 
 **Efeito do limite de CPU (container, exemplo processos com 8 workers):**
 
@@ -321,10 +321,10 @@ com limites de CPU, medir o speedup e apresentar os resultados graficamente.
 ### Consequências / Interpretação
 
 - **Threads escalam melhor que processos** (criação de thread é mais barata que `fork`
-  + `mmap`), chegando a ~1,7x com 8 threads.
-- **Processos têm pouco ganho (ou perda) nesta escala**: o custo de `fork`/`mmap` somado
-  à mesclagem sequencial supera o ganho da ordenação paralela em 2–4 processos.
+  + `mmap`): pico de ~1,70x com 4 threads.
+- **Processos têm ganho modesto** (~1,15–1,28x) — o custo de `fork`/`mmap` somado à
+  mesclagem sequencial reduz o benefício da ordenação paralela.
 - A **mesclagem sequencial** é o gargalo (Lei de Amdahl), limitando o speedup de ambos.
-- A máquina apresentou **alta variância** (oscilações de ~3× entre execuções), então
-  usou-se a **mediana** e os valores são aproximados; em um ambiente controlado o
-  speedup tende a ser maior.
+- O benchmark usa execuções **intercaladas (round-robin)** + **mediana**, para reduzir o
+  viés da variação de frequência da CPU da máquina de desenvolvimento (a versão
+  sequencial, por usar 1 núcleo, é mais sensível a essa variação).
