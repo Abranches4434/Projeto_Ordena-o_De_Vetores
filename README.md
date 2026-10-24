@@ -20,10 +20,11 @@ Aplicação em **C** que consolida e ordena produtos de **5+ lojas fictícias** 
 ├── Makefile                # build das três versões
 ├── src/
 │   ├── modelo.h            # struct Produto + comparador
-│   ├── gerador.c/.h        # geração sintética por loja
-│   ├── quicksort.c/.h      # quicksort sequencial/paralelo
+│   ├── gerador.c/.h        # geração sintética por loja (determinística)
+│   ├── quicksort.c/.h      # quicksort sequencial
+│   ├── util.c/.h           # funções comuns (tempo, checksum, merge)
 │   ├── main_sequencial.c   # versão sequencial
-│   ├── main_processos.c    # versão com processos (Etapa 3)
+│   ├── main_processos.c    # versão com processos
 │   └── main_threads.c      # versão com threads (Etapa 4)
 ├── testes/
 │   ├── entradas/           # seeds/configurações
@@ -36,7 +37,7 @@ Aplicação em **C** que consolida e ordena produtos de **5+ lojas fictícias** 
 
 - [x] Etapa 1 — Fundação (modelo de dados + estrutura + SPEC)
 - [x] Etapa 2 — Versão sequencial (≥ 2s)
-- [ ] Etapa 3 — Versão com processos
+- [x] Etapa 3 — Versão com processos
 - [ ] Etapa 4 — Versão com threads
 - [ ] Etapa 5 — Container + medições/speedup
 
@@ -59,19 +60,21 @@ Dentro do WSL2, acesse o projeto (a partir do Windows):
 cd /mnt/c/Users/jo22m/Projeto_Ordena-o_De_Vetores
 ```
 
-Compile a versão sequencial:
+Compile as versões:
 
 ```bash
-make sequencial
+make sequencial   # versão sequencial (Etapa 2)
+make processos    # versão com processos + memória compartilhada (Etapa 3)
 ```
 
 Execute (valores padrão: 5 lojas × 2.000.000 produtos):
 
 ```bash
 ./bin/sequencial
+./bin/processos --proc 4
 ```
 
-Parâmetros opcionais:
+Parâmetros opcionais (válidos para as duas versões):
 
 ```bash
 ./bin/sequencial --lojas 8 --por-loja 2000000 --seed 42 --saida testes/resultados/saida.bin
@@ -82,6 +85,7 @@ Parâmetros opcionais:
 | `--lojas N` | quantidade de lojas (padrão 5) |
 | `--por-loja M` | produtos por loja (padrão 2.000.000) |
 | `--seed S` | semente do gerador (padrão 0) |
+| `--proc P` | número de processos (só na versão `processos`; padrão 4) |
 | `--saida ARQ` | grava o vetor ordenado em arquivo binário |
 | `--help` | mostra a ajuda |
 

@@ -14,6 +14,9 @@
 |------------|---------|--------------|-----------|
 | 23/10/2026 | Etapa 1 | Nova feature | Fundação: problema, modelo de dados, arquitetura e estrutura do projeto. |
 | 23/10/2026 | Etapa 2 | Nova feature | Versão sequencial: gerador, quicksort e medição de tempo (linha de base). |
+| 23/10/2026 | Etapa 3 | Alteração | Gerador refatorado (xorshift64\* → splitmix64 por índice) para permitir geração paralela determinística. |
+| 23/10/2026 | Etapa 3 | Alteração | Funções comuns extraídas para `src/util.c/.h` (tempo, checksum, verificação, impressão, mesclagem). |
+| 23/10/2026 | Etapa 3 | Nova feature | Versão paralela com processos + memória compartilhada (mmap + fork + mesclagem k-vias). |
 
 ---
 
@@ -125,8 +128,61 @@ Em WSL2/Ubuntu (gcc 15.2, `-O2`), com a entrada padrão (5 lojas × 2.000.000 =
 
 ---
 
+## Etapa 3 — Versão Paralela com Processos
+
+### O que
+
+Versão que paraleliza as fases de **geração** e **ordenação** usando múltiplos
+processos (`fork`) com **memória compartilhada** (`mmap` com `MAP_SHARED |
+MAP_ANONYMOUS`):
+
+1. O vetor de produtos é alocado em memória compartilhada, visível ao pai e aos filhos.
+2. O vetor é dividido em `nproc` trechos contíguos (disjuntos).
+3. Cada processo filho gera (`gerar_faixa`) e ordena (quicksort) o seu trecho.
+4. O pai aguarda todos os filhos (`wait` — sincronização/barreira).
+5. O pai mescla os trechos ordenados (mesclagem k-vias com min-heap).
+
+O número de processos é passado em tempo de execução (`--proc P`), nunca fixo no código.
+
+### Por que
+
+Atende ao requisito do enunciado de uma versão paralela com **múltiplos processos e
+memória compartilhada**, demonstrando divisão de trabalho (trechos), comunicação
+(via memória compartilhada), sincronização (`wait`) e a fase de coordenação (mesclagem).
+
+### Onde
+
+- `src/main_processos.c` — versão com processos (fork + mmap + wait + merge).
+- `src/util.c/.h` — mesclagem k-vias (`mesclar_k_vias`) e funções comuns.
+- `src/gerador.c/.h` — `gerar_faixa` (geração determinística por índice, paralelizável).
+- `Makefile` — alvo `processos`.
+
+### Consequências
+
+- Introduz **memória compartilhada** via `mmap` (`MAP_SHARED | MAP_ANONYMOUS`) entre pai e filhos.
+- A **mesclagem k-vias é sequencial** e vira o gargalo (Lei de Amdahl): quanto mais
+  processos, maior o peso relativo da mesclagem, limitando o speedup.
+- A geração determinística por índice (`splitmix64`) garante que as faixas geradas em
+  paralelo produzam **exatamente** os mesmos dados da versão sequencial.
+
+### Validação (medição preliminar)
+
+Todos os casos produzem `checksum = a07c6fe59a7b186b` (idêntico à versão sequencial) e
+`ordenacao verificada: OK`.
+
+| Processos | Ger+Ord (paralelo) | Mesclagem | Total | Speedup\* |
+|-----------|--------------------|-----------|-------|-----------|
+| 2 | 3,03 s | 4,78 s | 7,92 s | ~1,5x |
+| 4 | 4,12 s | 1,98 s | 6,20 s | ~1,9x |
+| 8 | 1,65 s | 1,23 s | 2,99 s | ~4,0x |
+
+\*Speedup em relação ao sequencial (~12,05 s). **Valores preliminares de uma única
+execução**; a medição rigorosa (múltiplas execuções, média e desvio) será feita na
+Etapa 5, pois os tempos variaram bastante entre execuções (carga da máquina).
+
+---
+
 ## Próximas etapas (planejadas)
 
-- **Etapa 3** — Versão paralela com processos (`fork` + `mmap`).
 - **Etapa 4** — Versão paralela com threads (`pthreads`).
 - **Etapa 5** — Container Docker + limites de CPU + gráficos de tempo/speedup.

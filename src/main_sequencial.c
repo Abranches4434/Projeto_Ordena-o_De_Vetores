@@ -2,57 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <time.h>
 #include "modelo.h"
 #include "gerador.h"
 #include "quicksort.h"
-
-/* Tempo monotônico em segundos (fonte única para todas as medições). */
-static double agora_segundos(void) {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (double)ts.tv_sec + (double)ts.tv_nsec / 1e9;
-}
-
-/*
- * Checksum FNV-1a sobre os campos (e não sobre os bytes crus, para evitar
- * incluir padding não inicializado). Permite comparar a equivalência dos
- * resultados entre as três versões: mesma saída => mesmo checksum.
- */
-static uint64_t checksum_produtos(const Produto *v, size_t n) {
-    const uint64_t PRIME = 1099511628211ULL;
-    uint64_t h = 1469598103934665603ULL; /* offset basis FNV-1a */
-    for (size_t i = 0; i < n; i++) {
-        uint64_t bits_preco;
-        memcpy(&bits_preco, &v[i].preco, sizeof(bits_preco));
-        h ^= v[i].id;         h *= PRIME;
-        h ^= v[i].loja_id;    h *= PRIME;
-        h ^= bits_preco;      h *= PRIME;
-        h ^= v[i].data;       h *= PRIME;
-        h ^= v[i].quantidade; h *= PRIME;
-    }
-    return h;
-}
-
-/* Verifica se o vetor está em ordem não-decrescente (evidência de correção). */
-static int verificar_ordenado(const Produto *v, size_t n) {
-    for (size_t i = 1; i < n; i++) {
-        if (compara_produto(&v[i - 1], &v[i]) > 0) {
-            fprintf(stderr, "FALHA: v[%zu] > v[%zu]\n", i - 1, i);
-            return 0;
-        }
-    }
-    return 1;
-}
-
-static void imprimir_produto(const Produto *p) {
-    printf("  { id=%llu loja=%u preco=%.2f data=%llu qtd=%u }\n",
-           (unsigned long long)p->id,
-           p->loja_id,
-           p->preco,
-           (unsigned long long)p->data,
-           p->quantidade);
-}
+#include "util.h"
 
 static void uso(const char *prog) {
     fprintf(stderr,
@@ -70,7 +23,6 @@ int main(int argc, char **argv) {
     uint64_t seed      = 0;
     const char *saida  = NULL;
 
-    /* Parsing simples dos argumentos. */
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--lojas") == 0 && i + 1 < argc) {
             num_lojas = (uint32_t)strtoul(argv[++i], NULL, 10);
@@ -117,7 +69,6 @@ int main(int argc, char **argv) {
     t1 = agora_segundos();
     double t_ordenacao = t1 - t0;
 
-    /* Verificação de ordenação (barata, fora da medição da fase de sort). */
     int ordenado = verificar_ordenado(v, (size_t)total);
 
     /* Fase 3: saída. */
@@ -131,10 +82,9 @@ int main(int argc, char **argv) {
         }
         size_t escritos = fwrite(v, sizeof(Produto), (size_t)total, f);
         fclose(f);
-        if (escritos != (size_t)total) {
+        if (escritos != (size_t)total)
             fprintf(stderr, "Aviso: gravou %zu de %llu registros.\n",
                     escritos, (unsigned long long)total);
-        }
     }
     uint64_t ck = checksum_produtos(v, (size_t)total);
     t1 = agora_segundos();
@@ -143,13 +93,13 @@ int main(int argc, char **argv) {
     double t_total = t_geracao + t_ordenacao + t_saida;
 
     printf("Resultados (sequencial):\n");
-    printf("  total de produtos : %llu\n", (unsigned long long)total);
+    printf("  total de produtos  : %llu\n", (unsigned long long)total);
     printf("  ordenacao verificada: %s\n", ordenado ? "OK" : "FALHA");
-    printf("  checksum          : %016llx\n", (unsigned long long)ck);
-    printf("  tempo geracao     : %.3f s\n", t_geracao);
-    printf("  tempo ordenacao   : %.3f s\n", t_ordenacao);
-    printf("  tempo saida       : %.3f s\n", t_saida);
-    printf("  tempo total       : %.3f s\n", t_total);
+    printf("  checksum           : %016llx\n", (unsigned long long)ck);
+    printf("  tempo geracao      : %.3f s\n", t_geracao);
+    printf("  tempo ordenacao    : %.3f s\n", t_ordenacao);
+    printf("  tempo saida        : %.3f s\n", t_saida);
+    printf("  tempo total        : %.3f s\n", t_total);
     printf("  primeiros 3:\n");
     for (size_t i = 0; i < 3 && i < (size_t)total; i++) imprimir_produto(&v[i]);
     printf("  ultimos 3:\n");
