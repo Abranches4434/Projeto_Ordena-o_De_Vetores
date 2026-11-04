@@ -12,15 +12,15 @@
  */
 
 /* Quantidade padrão de lojas (pode ser sobrescrita na linha de comando). */
-#define NUM_LOJAS_PADRAO 5
+#define NUM_LOJAS_PADRAO 10
 
 /*
  * Quantidade padrão de produtos por loja.
- * 5 lojas x 2.000.000 = 10.000.000 produtos no total, garantindo execução
+ * 10 lojas x 3.000.000 = 30.000.000 produtos no total, garantindo execução
  * sequencial confortavelmente >= 2 segundos (com margem para a apresentação).
  * Ajustável na linha de comando.
  */
-#define PRODUTOS_POR_LOJA_PADRAO 2000000
+#define PRODUTOS_POR_LOJA_PADRAO 3000000
 
 typedef struct {
     uint64_t id;         /* identificador único global (usado como desempate)   */
