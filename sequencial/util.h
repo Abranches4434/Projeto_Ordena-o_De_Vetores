@@ -20,6 +20,9 @@ int verificar_ordenado(const Produto *v, size_t n);
 
 void imprimir_produto(const Produto *p);
 
+/* Converte um timestamp (segundos Unix) em data legível "AAAA-MM-DD". */
+void formatar_data(uint64_t ts, char *buf, size_t n);
+
 /*
  * Mescla `k` trechos ordenados de `src` (delimitados por inicios[0..k]) em `dst`.
  * Os trechos são as fatias já ordenadas do vetor compartilhado; a mesclagem

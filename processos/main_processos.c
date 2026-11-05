@@ -136,20 +136,39 @@ int main(int argc, char **argv) {
 
     double t_total = t_paralelo + t_merge + t_saida;
 
-    printf("Resultados (processos):\n");
-    printf("  processos           : %d\n", nproc);
-    printf("  total de produtos   : %llu\n", (unsigned long long)total);
-    printf("  ordenacao verificada: %s\n", ordenado ? "OK" : "FALHA");
-    printf("  checksum            : %016llx\n", (unsigned long long)ck);
-    printf("  tempo geracao+ord.  : %.3f s  (paralelo)\n", t_paralelo);
-    printf("  tempo mesclagem     : %.3f s\n", t_merge);
-    printf("  tempo saida         : %.3f s\n", t_saida);
-    printf("  tempo total         : %.3f s\n", t_total);
-    printf("  primeiros 3:\n");
-    for (size_t i = 0; i < 3 && i < (size_t)total; i++) imprimir_produto(&mesclado[i]);
-    printf("  ultimos 3:\n");
-    for (size_t i = (size_t)total; i > 0 && i > (size_t)total - 3; i--)
-        imprimir_produto(&mesclado[i - 1]);
+    printf("============================================================\n");
+    printf("  Ordenacao de Produtos Multi-loja  -  versao: PROCESSOS\n");
+    printf("============================================================\n");
+    printf("  Configuracao\n");
+    printf("    %-14s: %u\n",   "lojas",         num_lojas);
+    printf("    %-14s: %llu\n", "produtos/loja", (unsigned long long)por_loja);
+    printf("    %-14s: %llu\n", "total",         (unsigned long long)total);
+    printf("    %-14s: %llu\n", "seed",          (unsigned long long)seed);
+    printf("    %-14s: %d\n",   "processos",     nproc);
+    printf("------------------------------------------------------------\n");
+    printf("  Resultado\n");
+    printf("    %-14s: %s\n",    "ordenacao", ordenado ? "OK" : "FALHA");
+    printf("    %-14s: %016llx\n", "checksum",  (unsigned long long)ck);
+    printf("------------------------------------------------------------\n");
+    printf("  Tempos\n");
+    printf("    %-9s : %10.3f s  (paralelo)\n", "ger+ord", t_paralelo);
+    printf("    %-9s : %10.3f s\n", "mesclagem", t_merge);
+    printf("    %-9s : %10.3f s\n", "saida",     t_saida);
+    printf("    ----------------------------\n");
+    printf("    %-9s : %10.3f s\n", "TOTAL",     t_total);
+    printf("============================================================\n");
+    printf("  Primeiros 3 produtos\n");
+    for (size_t i = 0; i < 3 && i < (size_t)total; i++) {
+        printf("    #%zu  ", i + 1);
+        imprimir_produto(&mesclado[i]);
+    }
+    printf("  Ultimos 3 produtos\n");
+    size_t ini = (size_t)total > 3 ? (size_t)total - 3 : 0;
+    for (size_t i = ini; i < (size_t)total; i++) {
+        printf("    #%zu  ", i - ini + 1);
+        imprimir_produto(&mesclado[i]);
+    }
+    printf("============================================================\n");
 
     free(mesclado);
     return 0;

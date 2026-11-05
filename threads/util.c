@@ -35,13 +35,18 @@ int verificar_ordenado(const Produto *v, size_t n) {
     return 1;
 }
 
+void formatar_data(uint64_t ts, char *buf, size_t n) {
+    time_t t = (time_t)ts;
+    struct tm tm;
+    gmtime_r(&t, &tm);
+    strftime(buf, n, "%Y-%m-%d", &tm);
+}
+
 void imprimir_produto(const Produto *p) {
-    printf("  { id=%llu loja=%u preco=%.2f data=%llu qtd=%u }\n",
-           (unsigned long long)p->id,
-           p->loja_id,
-           p->preco,
-           (unsigned long long)p->data,
-           p->quantidade);
+    char data_str[32];
+    formatar_data(p->data, data_str, sizeof(data_str));
+    printf("loja=%-2u  preco=R$ %10.2f  data=%s  qtd=%u\n",
+           p->loja_id, p->preco, data_str, p->quantidade);
 }
 
 /* --- mesclagem k-vias com min-heap --- */

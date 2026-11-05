@@ -2,7 +2,7 @@
 
 Trabalho **P1 — Programação Paralela (SO2)**.
 
-Aplicação em **C** que consolida e ordena produtos de **5+ lojas fictícias** por
+Aplicação em **C** que consolida e ordena produtos de **10+ lojas fictícias** por
 **data**, **valor** e desempate por `id`, usando **Quicksort**, em três versões:
 
 1. **Sequencial**
@@ -59,7 +59,7 @@ cd processos  && make && ./processos --proc 4
 cd threads    && make && ./threads --threads 4
 ```
 
-Os valores padrão são 5 lojas × 2.000.000 produtos (~10 milhões de registros),
+Os valores padrão são 10 lojas × 3.000.000 produtos (~30 milhões de registros),
 garantindo execução sequencial ≥ 2 s. As três versões devem produzir o **mesmo
 checksum** para a mesma semente.
 

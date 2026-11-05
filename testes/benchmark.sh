@@ -11,8 +11,8 @@
 set -u
 
 RODADAS="${1:-5}"
-LOJAS=5
-POR_LOJA=2000000
+LOJAS=10
+POR_LOJA=3000000
 SEED=42
 OUT="testes/resultados/tempos.csv"
 
@@ -31,7 +31,7 @@ medir_um() {
   local rotulo="$1" w="$2"; shift 2
   local t
   t=$("$@" --lojas "$LOJAS" --por-loja "$POR_LOJA" --seed "$SEED" 2>/dev/null \
-      | awk '/tempo total/ {print $4}')
+      | awk '/TOTAL/ {print $3}')
   echo "$rotulo,$w,$t" >> "$OUT"
 }
 

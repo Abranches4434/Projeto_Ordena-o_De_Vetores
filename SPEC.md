@@ -20,6 +20,7 @@
 | 23/10/2026 | Etapa 4 | Nova feature | Versão paralela com threads (pthreads), mesma estratégia dos processos. |
 | 23/10/2026 | Reestruturação | Alteração | Diretórios reorganizados em pastas autocontidas por versão + `container/`/`testes/`/`documentacao/`, conforme enunciado. |
 | 23/10/2026 | Etapa 5 | Nova feature | Container Docker, benchmark (nativo + container) e gráficos de tempo/speedup. |
+| 03/11/2026 | Etapa 5 | Alteração | Parâmetros padrão alterados para 10 lojas × 3.000.000 (30M) para garantir ≥ 2s de forma estável; benchmark e gráficos regenerados. |
 
 ---
 
@@ -27,7 +28,7 @@
 
 ### O que
 
-Aplicação em **C** que consolida e ordena produtos de **5 ou mais lojas fictícias**
+Aplicação em **C** que consolida e ordena produtos de **10 ou mais lojas fictícias**
 (dados gerados de forma sintética) e os ordena por **data**, **valor** e um
 desempate estável por `id`, usando o algoritmo **Quicksort**.
 
@@ -116,8 +117,8 @@ versões paralelas (Etapas 3 e 4).
 
 ### Validação (medição de referência)
 
-Em WSL2/Ubuntu (gcc 15.2, `-O2`), com a entrada padrão (5 lojas × 2.000.000 =
-10.000.000 produtos):
+Em WSL2/Ubuntu (gcc 15.2, `-O2`), com a entrada padrão (10 lojas × 3.000.000 =
+30.000.000 produtos):
 
 | Fase | Tempo |
 |------|-------|
@@ -298,33 +299,29 @@ com limites de CPU, medir o speedup e apresentar os resultados graficamente.
 - `testes/benchmark.sh`, `testes/benchmark_container.sh`, `testes/graficos.py`
 - `testes/resultados/*.csv` (dados) e `*.png` (gráficos)
 
-### Resultados (mediana de 5 execuções intercaladas)
+### Resultados (média de 7 execuções manuais, 30M produtos)
 
 `checksum` idêntico em todas as configurações (nativo e container): equivalência confirmada.
 
-**Tempo total e speedup (nativo, sequencial = 4,80 s):**
+**Tempo total e speedup (nativo, sequencial = 7,17 s):**
 
 | Workers | Processos | Speedup | Threads | Speedup |
 |---------|-----------|---------|---------|---------|
-| 2 | 4,16 s | 1,15x | 4,04 s | 1,19x |
-| 4 | 3,75 s | 1,28x | 2,83 s | 1,70x |
-| 8 | 4,03 s | 1,19x | 2,96 s | 1,62x |
+| 2 | 7,77 s | 0,92x | 6,51 s | 1,10x |
+| 4 | 6,22 s | 1,15x | 6,20 s | 1,16x |
+| 8 | 6,92 s | 1,04x | 5,40 s | 1,33x |
 
 **Efeito do limite de CPU (container, exemplo processos com 8 workers):**
 
 | CPU | Tempo |
 |-----|-------|
-| 1 | 10,18 s |
-| 2 | 6,86 s |
-| 4 | 4,18 s |
+| 1 | 18,60 s |
+| 2 | 12,57 s |
+| 4 | 9,50 s |
 
 ### Consequências / Interpretação
 
-- **Threads escalam melhor que processos** (criação de thread é mais barata que `fork`
-  + `mmap`): pico de ~1,70x com 4 threads.
-- **Processos têm ganho modesto** (~1,15–1,28x) — o custo de `fork`/`mmap` somado à
-  mesclagem sequencial reduz o benefício da ordenação paralela.
+- **Threads escalam melhor que processos**: 1,33x (8 threads) contra 1,04x (8 processos).
+- **Processos têm pico em 4 workers** (1,15x) e caem em 8, pelo custo de `fork` + `mmap`.
 - A **mesclagem sequencial** é o gargalo (Lei de Amdahl), limitando o speedup de ambos.
-- O benchmark usa execuções **intercaladas (round-robin)** + **mediana**, para reduzir o
-  viés da variação de frequência da CPU da máquina de desenvolvimento (a versão
-  sequencial, por usar 1 núcleo, é mais sensível a essa variação).
+- **Dentro do container**, mais CPUs reduzem o tempo; mais workers com 1 CPU aumentam (contenção).

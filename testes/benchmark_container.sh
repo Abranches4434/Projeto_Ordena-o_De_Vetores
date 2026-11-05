@@ -9,8 +9,8 @@
 
 set -u
 
-LOJAS=5
-POR_LOJA=2000000
+LOJAS=10
+POR_LOJA=3000000
 SEED=42
 OUT="testes/resultados/tempos_container.csv"
 IMAGEM="ordenacao-produtos"
@@ -28,13 +28,13 @@ for cpus in 1 2 4; do
   for p in 2 4 8; do
     t=$(docker run --rm --cpus="$cpus" "$IMAGEM" \
         ./processos/processos --proc "$p" --lojas "$LOJAS" --por-loja "$POR_LOJA" --seed "$SEED" 2>/dev/null \
-        | awk '/tempo total/ {print $4}')
+        | awk '/TOTAL/ {print $3}')
     echo "processos,$p,$cpus,$t" >> "$OUT"
   done
   for th in 2 4 8; do
     t=$(docker run --rm --cpus="$cpus" "$IMAGEM" \
         ./threads/threads --threads "$th" --lojas "$LOJAS" --por-loja "$POR_LOJA" --seed "$SEED" 2>/dev/null \
-        | awk '/tempo total/ {print $4}')
+        | awk '/TOTAL/ {print $3}')
     echo "threads,$th,$cpus,$t" >> "$OUT"
   done
 done

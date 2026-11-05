@@ -22,8 +22,8 @@ make
 | Parâmetro | Descrição | Padrão |
 |-----------|-----------|--------|
 | `--threads T` | número de threads | 4 |
-| `--lojas N` | quantidade de lojas | 5 |
-| `--por-loja M` | produtos por loja | 2.000.000 |
+| `--lojas N` | quantidade de lojas | 10 |
+| `--por-loja M` | produtos por loja | 3.000.000 |
 | `--seed S` | semente do gerador | 0 |
 | `--saida ARQ` | grava o vetor ordenado em arquivo binário | — |
 
