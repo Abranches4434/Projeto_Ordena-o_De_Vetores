@@ -12,7 +12,7 @@ double agora_segundos(void) {
 
 uint64_t checksum_produtos(const Produto *v, size_t n) {
     const uint64_t PRIME = 1099511628211ULL;
-    uint64_t h = 1469598103934665603ULL; /* offset basis FNV-1a */
+    uint64_t h = 1469598103934665603ULL;
     for (size_t i = 0; i < n; i++) {
         uint64_t bits_preco;
         memcpy(&bits_preco, &v[i].preco, sizeof(bits_preco));
@@ -49,15 +49,14 @@ void imprimir_produto(const Produto *p) {
            p->loja_id, p->preco, data_str, p->quantidade);
 }
 
-/* --- mesclagem k-vias com min-heap --- */
+
 
 typedef struct {
-    uint64_t pos;   /* índice absoluto do próximo elemento dentro de src */
-    uint64_t fim;   /* fim do trecho (exclusivo) */
+    uint64_t pos;
+    uint64_t fim;
 } NoHeap;
 
-/* Desce o elemento i no min-heap. Compara apenas os valores apontados, sem
-   copiar structs Produto inteiras (que custariam caro). */
+
 static void heap_sift_down(NoHeap *h, int n, int i, const Produto *src) {
     for (;;) {
         int l = 2 * i + 1, r = 2 * i + 2, menor = i;
