@@ -299,32 +299,29 @@ com limites de CPU, medir o speedup e apresentar os resultados graficamente.
 - `testes/benchmark.sh`, `testes/benchmark_container.sh`, `testes/graficos.py`
 - `testes/resultados/*.csv` (dados) e `*.png` (gráficos)
 
-### Resultados (mediana de 5 execuções intercaladas, 30M produtos)
+### Resultados (média de 7 execuções manuais, 30M produtos)
 
 `checksum` idêntico em todas as configurações (nativo e container): equivalência confirmada.
 
-**Tempo total e speedup (nativo, sequencial = 12,02 s):**
+**Tempo total e speedup (nativo, sequencial = 7,17 s):**
 
 | Workers | Processos | Speedup | Threads | Speedup |
 |---------|-----------|---------|---------|---------|
-| 2 | 16,89 s | 0,71x | 15,09 s | 0,80x |
-| 4 | 21,14 s | 0,57x | 14,03 s | 0,86x |
-| 8 | 18,95 s | 0,63x | 20,26 s | 0,59x |
+| 2 | 7,77 s | 0,92x | 6,51 s | 1,10x |
+| 4 | 6,22 s | 1,15x | 6,20 s | 1,16x |
+| 8 | 6,92 s | 1,04x | 5,40 s | 1,33x |
 
 **Efeito do limite de CPU (container, exemplo processos com 8 workers):**
 
 | CPU | Tempo |
 |-----|-------|
-| 1 | 71,79 s |
-| 2 | 61,88 s |
-| 4 | 30,82 s |
+| 1 | 18,60 s |
+| 2 | 12,57 s |
+| 4 | 9,50 s |
 
 ### Consequências / Interpretação
 
-- Com 30M, a **mesclagem sequencial (min-heap) domina**: as versões paralelas ficaram
-  **mais lentas** que a sequencial (speedup < 1).
-- Causa: a mesclagem k-vias tem acesso não-sequencial à memória (cache-unfriendly),
-  ficando ~6,5× mais lenta por comparação que a ordenação.
-- **Correção possível**: trocar a mesclagem por **par-a-par** (acesso sequencial), que
-  reduziria a mesclagem a ~12% da ordenação e recuperaria o speedup.
-- O benchmark usa execuções **intercaladas (round-robin)** + **mediana**.
+- **Threads escalam melhor que processos**: 1,33x (8 threads) contra 1,04x (8 processos).
+- **Processos têm pico em 4 workers** (1,15x) e caem em 8, pelo custo de `fork` + `mmap`.
+- A **mesclagem sequencial** é o gargalo (Lei de Amdahl), limitando o speedup de ambos.
+- **Dentro do container**, mais CPUs reduzem o tempo; mais workers com 1 CPU aumentam (contenção).
