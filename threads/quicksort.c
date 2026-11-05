@@ -1,6 +1,6 @@
 #include "quicksort.h"
 
-/* Tamanho abaixo do qual usa insertion sort (evita recursao profunda). */
+
 #define CORTE_INSERTION 16
 
 static void troca(Produto *a, Produto *b) {
@@ -9,24 +9,24 @@ static void troca(Produto *a, Produto *b) {
     *b = t;
 }
 
-/* Mediana-de-tres: reduz a chance de caso patologico O(n^2). */
+
 static Produto *mediana_de_tres(Produto *a, Produto *b, Produto *c) {
     if (compara_produto(a, b) < 0) {
-        if (compara_produto(b, c) < 0) return b;   /* a < b < c */
-        if (compara_produto(a, c) < 0) return c;   /* a < c <= b */
-        return a;                                   /* c <= a < b */
+        if (compara_produto(b, c) < 0) return b;
+        if (compara_produto(a, c) < 0) return c;
+        return a;
     } else {
-        if (compara_produto(a, c) < 0) return a;   /* b <= a < c */
-        if (compara_produto(b, c) < 0) return c;   /* b < c <= a */
-        return b;                                   /* c <= b <= a */
+        if (compara_produto(a, c) < 0) return a;
+        if (compara_produto(b, c) < 0) return c;
+        return b;
     }
 }
 
-/* Particao de Lomuto (indices inclusivos). Retorna a posicao final do pivo. */
+
 static size_t particionar(Produto *v, size_t lo, size_t hi) {
     size_t mid = lo + (hi - lo) / 2;
     Produto *p = mediana_de_tres(&v[lo], &v[mid], &v[hi]);
-    troca(p, &v[hi]);              /* pivo para o fim */
+    troca(p, &v[hi]);
     Produto *pivo = &v[hi];
 
     size_t i = lo;
@@ -53,7 +53,7 @@ static void insertion_sort(Produto *v, size_t lo, size_t hi) {
 }
 
 static void quicksort_rec(Produto *v, size_t lo, size_t hi) {
-    if (lo >= hi) return;                 /* 0 ou 1 elemento */
+    if (lo >= hi) return;
     if (hi - lo < CORTE_INSERTION) {
         insertion_sort(v, lo, hi);
         return;
@@ -63,6 +63,7 @@ static void quicksort_rec(Produto *v, size_t lo, size_t hi) {
     quicksort_rec(v, p + 1, hi);
 }
 
+// Ordena o vetor: escolhe um pivô, separa menores e maiores, e repete isso em cada metade.
 void quicksort_produtos(Produto *v, size_t n) {
     if (n < 2) return;
     quicksort_rec(v, 0, n - 1);

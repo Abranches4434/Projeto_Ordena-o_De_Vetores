@@ -10,9 +10,10 @@ double agora_segundos(void) {
     return (double)ts.tv_sec + (double)ts.tv_nsec / 1e9;
 }
 
+// Gera uma "impressão digital" do resultado — se duas versões têm o mesmo checksum, produziram a mesma saída.
 uint64_t checksum_produtos(const Produto *v, size_t n) {
     const uint64_t PRIME = 1099511628211ULL;
-    uint64_t h = 1469598103934665603ULL; /* offset basis FNV-1a */
+    uint64_t h = 1469598103934665603ULL;
     for (size_t i = 0; i < n; i++) {
         uint64_t bits_preco;
         memcpy(&bits_preco, &v[i].preco, sizeof(bits_preco));
@@ -49,15 +50,14 @@ void imprimir_produto(const Produto *p) {
            p->loja_id, p->preco, data_str, p->quantidade);
 }
 
-/* --- mesclagem k-vias com min-heap --- */
+
 
 typedef struct {
-    uint64_t pos;   /* índice absoluto do próximo elemento dentro de src */
-    uint64_t fim;   /* fim do trecho (exclusivo) */
+    uint64_t pos;
+    uint64_t fim;
 } NoHeap;
 
-/* Desce o elemento i no min-heap. Compara apenas os valores apontados, sem
-   copiar structs Produto inteiras (que custariam caro). */
+
 static void heap_sift_down(NoHeap *h, int n, int i, const Produto *src) {
     for (;;) {
         int l = 2 * i + 1, r = 2 * i + 2, menor = i;
@@ -69,6 +69,7 @@ static void heap_sift_down(NoHeap *h, int n, int i, const Produto *src) {
     }
 }
 
+// Junta os pedaços já ordenados num único vetor — é a etapa final e, por ser sequencial, vira o gargalo.
 void mesclar_k_vias(Produto *dst, const Produto *src, int k, const uint64_t *inicios) {
     NoHeap *h = (NoHeap *)malloc((size_t)k * sizeof(NoHeap));
     if (h == NULL) {

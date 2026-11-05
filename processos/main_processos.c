@@ -10,20 +10,7 @@
 #include "quicksort.h"
 #include "util.h"
 
-/*
- * Versão paralela com PROCESSOS + MEMÓRIA COMPARTILHADA.
- *
- * Estratégia (a mesma das versões sequencial e com threads, para comparação justa):
- *   1. O vetor de produtos é alocado em memória compartilhada (mmap MAP_SHARED |
- *      MAP_ANONYMOUS), visível ao pai e a todos os filhos.
- *   2. O vetor é dividido em `nproc` trechos contíguos.
- *   3. Cada processo filho GERA e ORDENA (quicksort) o seu trecho, de forma
- *      independente (trechos disjuntos => sem conflito).
- *   4. O pai aguarda todos os filhos (wait => barreira/sincronização).
- *   5. O pai mescla os `nproc` trechos ordenados (mesclagem k-vias com min-heap).
- *
- * O número de processos é passado em tempo de execução (--proc), nunca fixo.
- */
+
 
 static void uso(const char *prog) {
     fprintf(stderr,
@@ -56,7 +43,7 @@ int main(int argc, char **argv) {
 
     uint64_t total = (uint64_t)num_lojas * por_loja;
 
-    /* Evita criar mais processos do que elementos. */
+
     if ((uint64_t)nproc > total) nproc = (int)total;
     if (nproc < 1) nproc = 1;
 
@@ -64,7 +51,7 @@ int main(int argc, char **argv) {
             num_lojas, (unsigned long long)por_loja,
             (unsigned long long)total, (unsigned long long)seed, nproc);
 
-    /* Memória compartilhada entre pai e filhos. */
+
     size_t bytes = (size_t)total * sizeof(Produto);
     Produto *v = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if (v == MAP_FAILED) {
@@ -72,7 +59,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    /* Fronteiras dos trechos: o trecho do processo i é [inicios[i], inicios[i+1]). */
+
     uint64_t *inicios = (uint64_t *)malloc((size_t)(nproc + 1) * sizeof(uint64_t));
     if (inicios == NULL) {
         fprintf(stderr, "Erro: falha ao alocar fronteiras.\n");
@@ -80,8 +67,9 @@ int main(int argc, char **argv) {
     }
     for (int i = 0; i <= nproc; i++) inicios[i] = (uint64_t)i * total / nproc;
 
-    /* Fase paralela: cada filho gera + ordena o seu trecho. */
+
     double t0 = agora_segundos();
+    // Cada processo filho gera e ordena uma fatia do vetor, em paralelo.
     for (int i = 0; i < nproc; i++) {
         pid_t pid = fork();
         if (pid < 0) {
@@ -97,17 +85,19 @@ int main(int argc, char **argv) {
             _exit(0);
         }
     }
-    /* Pai aguarda todos os filhos (sincronização). */
+
+    // O processo pai espera todos os filhos terminarem (sincronização).
     for (int i = 0; i < nproc; i++) wait(NULL);
     double t_paralelo = agora_segundos() - t0;
 
-    /* Mesclagem k-vias (sequencial, no pai). */
+
     Produto *mesclado = (Produto *)malloc(bytes);
     if (mesclado == NULL) {
         fprintf(stderr, "Erro: falha ao alocar buffer de mesclagem.\n");
         return 1;
     }
     t0 = agora_segundos();
+    // Junta as fatias ordenadas num único vetor (etapa sequencial).
     mesclar_k_vias(mesclado, v, nproc, inicios);
     double t_merge = agora_segundos() - t0;
 
@@ -116,7 +106,7 @@ int main(int argc, char **argv) {
 
     int ordenado = verificar_ordenado(mesclado, (size_t)total);
 
-    /* Fase de saída. */
+
     t0 = agora_segundos();
     if (saida != NULL) {
         FILE *f = fopen(saida, "wb");

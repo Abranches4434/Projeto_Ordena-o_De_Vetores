@@ -52,7 +52,8 @@ int main(int argc, char **argv) {
             num_lojas, (unsigned long long)por_loja,
             (unsigned long long)total, (unsigned long long)seed);
 
-    /* Fase 1: entrada (geração). */
+
+    // Fase 1: gera todos os produtos de uma vez.
     double t0 = agora_segundos();
     Produto *v = gerar_produtos(num_lojas, por_loja, seed);
     double t1 = agora_segundos();
@@ -63,7 +64,8 @@ int main(int argc, char **argv) {
     }
     double t_geracao = t1 - t0;
 
-    /* Fase 2: ordenação. */
+
+    // Fase 2: ordena o vetor inteiro com uma única chamada.
     t0 = agora_segundos();
     quicksort_produtos(v, (size_t)total);
     t1 = agora_segundos();
@@ -71,7 +73,7 @@ int main(int argc, char **argv) {
 
     int ordenado = verificar_ordenado(v, (size_t)total);
 
-    /* Fase 3: saída. */
+
     t0 = agora_segundos();
     if (saida != NULL) {
         FILE *f = fopen(saida, "wb");

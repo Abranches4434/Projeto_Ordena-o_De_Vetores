@@ -8,21 +8,7 @@
 #include "quicksort.h"
 #include "util.h"
 
-/*
- * Versão paralela com THREADS (pthreads).
- *
- * Estratégia idêntica à versão com processos (para comparação justa):
- *   1. O vetor de produtos é alocado com malloc — as threads compartilham o
- *      mesmo espaço de endereçamento, então NÃO é preciso mmap (diferença
- *      fundamental em relação aos processos).
- *   2. O vetor é dividido em `nthreads` trechos contíguos (disjuntos).
- *   3. Cada thread GERA e ORDENA (quicksort) o seu trecho.
- *   4. A thread principal aguarda todas (pthread_join => barreira/sincronização).
- *   5. A thread principal mescla os trechos ordenados (mesclagem k-vias).
- *
- * Como os trechos são disjuntos, cada thread escreve apenas na sua região, sem
- * data race e sem necessidade de locks. A sincronização fica por conta do join.
- */
+
 
 typedef struct {
     Produto *v;
@@ -77,7 +63,7 @@ int main(int argc, char **argv) {
             num_lojas, (unsigned long long)por_loja,
             (unsigned long long)total, (unsigned long long)seed, nthreads);
 
-    /* Vetor alocado normalmente; threads compartilham o mesmo espaço de memória. */
+
     size_t bytes = (size_t)total * sizeof(Produto);
     Produto *v = (Produto *)malloc(bytes);
     if (v == NULL) {
@@ -95,8 +81,9 @@ int main(int argc, char **argv) {
     }
     for (int i = 0; i <= nthreads; i++) inicios[i] = (uint64_t)i * total / nthreads;
 
-    /* Fase paralela: cada thread gera + ordena o seu trecho. */
+
     double t0 = agora_segundos();
+    // Cada thread gera e ordena uma fatia do vetor, em paralelo.
     for (int i = 0; i < nthreads; i++) {
         args[i].v        = v;
         args[i].inicio   = inicios[i];
@@ -108,17 +95,19 @@ int main(int argc, char **argv) {
             return 1;
         }
     }
-    /* Thread principal aguarda todas (sincronização). */
+
+    // Espera todas as threads terminarem (sincronização).
     for (int i = 0; i < nthreads; i++) pthread_join(tids[i], NULL);
     double t_paralelo = agora_segundos() - t0;
 
-    /* Mesclagem k-vias (sequencial, na thread principal). */
+
     Produto *mesclado = (Produto *)malloc(bytes);
     if (mesclado == NULL) {
         fprintf(stderr, "Erro: falha ao alocar buffer de mesclagem.\n");
         return 1;
     }
     t0 = agora_segundos();
+    // Junta as fatias ordenadas num único vetor (etapa sequencial).
     mesclar_k_vias(mesclado, v, nthreads, inicios);
     double t_merge = agora_segundos() - t0;
 
@@ -129,7 +118,7 @@ int main(int argc, char **argv) {
 
     int ordenado = verificar_ordenado(mesclado, (size_t)total);
 
-    /* Fase de saída. */
+
     t0 = agora_segundos();
     if (saida != NULL) {
         FILE *f = fopen(saida, "wb");
