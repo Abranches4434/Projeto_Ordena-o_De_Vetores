@@ -83,6 +83,7 @@ int main(int argc, char **argv) {
 
 
     double t0 = agora_segundos();
+    // Cada thread gera e ordena uma fatia do vetor, em paralelo.
     for (int i = 0; i < nthreads; i++) {
         args[i].v        = v;
         args[i].inicio   = inicios[i];
@@ -95,6 +96,7 @@ int main(int argc, char **argv) {
         }
     }
 
+    // Espera todas as threads terminarem (sincronização).
     for (int i = 0; i < nthreads; i++) pthread_join(tids[i], NULL);
     double t_paralelo = agora_segundos() - t0;
 
@@ -105,6 +107,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     t0 = agora_segundos();
+    // Junta as fatias ordenadas num único vetor (etapa sequencial).
     mesclar_k_vias(mesclado, v, nthreads, inicios);
     double t_merge = agora_segundos() - t0;
 

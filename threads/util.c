@@ -10,6 +10,7 @@ double agora_segundos(void) {
     return (double)ts.tv_sec + (double)ts.tv_nsec / 1e9;
 }
 
+// Gera uma "impressão digital" do resultado — se duas versões têm o mesmo checksum, produziram a mesma saída.
 uint64_t checksum_produtos(const Produto *v, size_t n) {
     const uint64_t PRIME = 1099511628211ULL;
     uint64_t h = 1469598103934665603ULL;
@@ -68,6 +69,7 @@ static void heap_sift_down(NoHeap *h, int n, int i, const Produto *src) {
     }
 }
 
+// Junta os pedaços já ordenados num único vetor — é a etapa final e, por ser sequencial, vira o gargalo.
 void mesclar_k_vias(Produto *dst, const Produto *src, int k, const uint64_t *inicios) {
     NoHeap *h = (NoHeap *)malloc((size_t)k * sizeof(NoHeap));
     if (h == NULL) {

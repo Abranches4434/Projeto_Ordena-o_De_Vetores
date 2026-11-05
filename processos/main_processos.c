@@ -69,6 +69,7 @@ int main(int argc, char **argv) {
 
 
     double t0 = agora_segundos();
+    // Cada processo filho gera e ordena uma fatia do vetor, em paralelo.
     for (int i = 0; i < nproc; i++) {
         pid_t pid = fork();
         if (pid < 0) {
@@ -85,6 +86,7 @@ int main(int argc, char **argv) {
         }
     }
 
+    // O processo pai espera todos os filhos terminarem (sincronização).
     for (int i = 0; i < nproc; i++) wait(NULL);
     double t_paralelo = agora_segundos() - t0;
 
@@ -95,6 +97,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     t0 = agora_segundos();
+    // Junta as fatias ordenadas num único vetor (etapa sequencial).
     mesclar_k_vias(mesclado, v, nproc, inicios);
     double t_merge = agora_segundos() - t0;
 

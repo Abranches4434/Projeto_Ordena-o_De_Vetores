@@ -53,6 +53,7 @@ int main(int argc, char **argv) {
             (unsigned long long)total, (unsigned long long)seed);
 
 
+    // Fase 1: gera todos os produtos de uma vez.
     double t0 = agora_segundos();
     Produto *v = gerar_produtos(num_lojas, por_loja, seed);
     double t1 = agora_segundos();
@@ -64,6 +65,7 @@ int main(int argc, char **argv) {
     double t_geracao = t1 - t0;
 
 
+    // Fase 2: ordena o vetor inteiro com uma única chamada.
     t0 = agora_segundos();
     quicksort_produtos(v, (size_t)total);
     t1 = agora_segundos();

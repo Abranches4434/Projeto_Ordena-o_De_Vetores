@@ -63,6 +63,7 @@ static void quicksort_rec(Produto *v, size_t lo, size_t hi) {
     quicksort_rec(v, p + 1, hi);
 }
 
+// Ordena o vetor: escolhe um pivô, separa menores e maiores, e repete isso em cada metade.
 void quicksort_produtos(Produto *v, size_t n) {
     if (n < 2) return;
     quicksort_rec(v, 0, n - 1);

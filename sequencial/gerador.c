@@ -10,6 +10,7 @@ static uint64_t splitmix64(uint64_t x) {
     return x ^ (x >> 31);
 }
 
+// Gera produtos fictícios de forma determinística (mesma semente = mesmos dados), para comparar as versões com a mesma entrada.
 void gerar_faixa(Produto *v, uint64_t inicio, uint64_t fim, uint64_t seed, uint64_t por_loja) {
 
     const uint64_t T_INICIO = 1577836800ULL;
